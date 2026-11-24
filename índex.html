@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#D4AF37" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Controle Financeiro" />
+  <link rel="manifest" href="./manifest.json" />
+  <title>Controle Financeiro</title>
+  <style>
+    :root {
+      --bg: #080808;
+      --card: #121212;
+      --card-2: #19160e;
+      --gold: #d4af37;
+      --gold-light: #f3d478;
+      --gold-dark: #967618;
+      --text: #f7f4eb;
+      --muted: #a69f8a;
+      --border: rgba(212, 175, 55, 0.25);
+      --green: #38c172;
+      --red: #e05252;
+      --amber: #eab308;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 48px; }
+    .gold-text { background: linear-gradient(135deg, var(--gold-light), var(--gold), var(--gold-dark)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .lock-screen { position: fixed; inset: 0; background: radial-gradient(circle at top, #1d1706 0%, #070707 70%); display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 999; }
+    .lock-box { width: 100%; max-width: 380px; background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 28px 22px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.8); }
+    .lock-box h1 { font-size: 1.5rem; margin-bottom: 8px; }
+    .lock-box p { color: var(--muted); font-size: 0.9rem; margin-bottom: 18px; }
+    input, select { width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--border); background: #0c0c0c; color: var(--text); font-size: 0.95rem; margin-bottom: 12px; outline: none; }
+    input:focus, select:focus { border-color: var(--gold); }
+    .btn { width: 100%; padding: 12px 16px; border-radius: 12px; border: none; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: 0.2s; }
+    .btn-gold { background: linear-gradient(135deg, var(--gold-light), var(--gold)); color: #090909; }
+    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--gold-light); }
+    .btn-sm { width: auto; padding: 6px 10px; font-size: 0.8rem; border-radius: 8px; }
+    .btn-danger { background: rgba(224,82,82,0.16); color: #ff8585; border: 1px solid rgba(224,82,82,0.35); }
+    .app { max-width: 1100px; margin: 0 auto; padding: 18px 16px; display: none; }
+    header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; padding: 16px 18px; background: linear-gradient(135deg, #151209, #0e0e0e); border: 1px solid var(--border); border-radius: 18px; margin-bottom: 16px; }
+    .brand-title { font-size: 1.4rem; font-weight: 800; }
+    .header-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    .months { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 16px; }
+    .month-btn { padding: 9px 14px; border-radius: 999px; border: 1px solid var(--border); background: var(--card); color: var(--muted); font-weight: 600; font-size: 0.85rem; cursor: pointer; white-space: nowrap; }
+    .month-btn.active { background: linear-gradient(135deg, var(--gold-light), var(--gold)); color: #090909; border-color: transparent; }
+    .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom: 16px; }
+    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(310px, 1fr)); gap: 14px; margin-bottom: 16px; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 16px; }
+    .card-gold { background: linear-gradient(160deg, var(--card-2), var(--card)); }
+    .label { font-size: 0.78rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+    .val { font-size: 1.45rem; font-weight: 800; }
+    .sub { font-size: 0.8rem; color: var(--muted); margin-top: 6px; }
+    .green { color: var(--green); }
+    .red { color: var(--red); }
+    .amber { color: var(--amber); }
+    .section-title { font-size: 1.05rem; font-weight: 700; margin-bottom: 12px; color: var(--gold-light); }
+    .row-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+    .item { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 12px; border-radius: 12px; background: #0c0c0c; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 8px; }
+    .item-meta { font-size: 0.78rem; color: var(--muted); margin-top: 3px; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 0.72rem; font-weight: 700; margin-left: 6px; }
+    .badge-ok { background: rgba(56,193,114,0.16); color: var(--green); }
+    .badge-pend { background: rgba(234,179,8,0.16); color: var(--amber); }
+    .bar-wrap { margin-bottom: 12px; }
+    .bar-labels { display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 5px; }
+    .bar-track { height: 12px; background: #1a1a1a; border-radius: 999px; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 999px; transition: width 0.3s; }
+    .goal-bar { height: 10px; background: #1e1e1e; border-radius: 999px; overflow: hidden; margin-top: 8px; }
+    .goal-fill { height: 100%; background: linear-gradient(90deg, var(--gold-dark), var(--gold-light)); }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <div id="lockScreen" class="lock-screen">
+    <div class="lock-box">
+      <h1 class="gold-text">Controle Financeiro</h1>
+      <p id="lockHint">Crie uma senha pessoal para proteger o seu aplicativo.</p>
+      <input type="password" id="pinInput" placeholder="Digite sua senha" />
+      <input type="password" id="pinConfirm" placeholder="Confirme sua senha" />
+      <button class="btn btn-gold" id="pinSubmitBtn">Entrar</button>
+      <p id="pinError" class="red sub"></p>
+    </div>
+  </div>
+  <div id="app" class="app">
+    <header>
+      <div>
+        <div class="brand-title gold-text">Controle Financeiro</div>
+        <div class="sub">Painel Pessoal Exclusivo • 2026</div>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-outline btn-sm" onclick="exportBackup()">Exportar Backup</button>
+        <button class="btn btn-outline btn-sm" onclick="triggerImport()">Restaurar</button>
+        <button class="btn btn-outline btn-sm" onclick="lockApp()">Bloquear</button>
+        <input type="file" id="importFile" accept=".json" class="hidden" onchange="importBackup(event)" />
+      </div>
+    </header>
+
+    <div id="monthsBar" class="months"></div>
+
+    <div class="grid-4">
+      <div class="card card-gold">
+        <div class="label">Saldo Disponível (Realizado)</div>
+        <div id="saldoReal" class="val gold-text">R$ 0,00</div>
+        <div id="saldoPrevisto" class="sub">Saldo previsto: R$ 0,00</div>
+      </div>
+      <div class="card">
+        <div class="label">Entradas (Recebido vs Previsto)</div>
+        <div id="entRecebido" class="val green">R$ 0,00</div>
+        <div id="entPrevisto" class="sub">Previsto: R$ 0,00 • Extra: R$ 0,00</div>
+      </div>
+      <div class="card">
+        <div class="label">Despesas (Pagas vs Pendentes)</div>
+        <div id="saiPago" class="val red">R$ 0,00</div>
+        <div id="saiPendente" class="sub">Pendentes: R$ 0,00</div>
+      </div>
+      <div class="card">
+        <div class="label">Total Guardado em Metas</div>
+        <div id="totalGuardado" class="val gold-text">R$ 0,00</div>
+        <div id="totalAlvo" class="sub">Alvo total: R$ 0,00</div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="section-title" id="formTitle">Novo Lançamento</div>
+        <input type="hidden" id="editId" />
+        <div class="row-form">
+          <select id="txType" onchange="updateStatusOptions()">
+            <option value="salario">Salário / Entrada Fixa</option>
+            <option value="entrada">Outra Entrada</option>
+            <option value="extra">Dinheiro Extra Inesperado</option>
+            <option value="despesa">Despesa / Conta</option>
+          </select>
+          <select id="txStatus"></select>
+        </div>
+        <div class="row-form">
+          <input type="text" id="txDesc" placeholder="Descrição (ex: Salário, Luz, Freela)" />
+          <input type="number" id="txVal" step="0.01" placeholder="Valor (R$)" />
+        </div>
+        <div class="row-form">
+          <input type="date" id="txDate" />
+          <button class="btn btn-gold" onclick="saveTx()">Salvar Lançamento</button>
+        </div>
+        <button id="cancelEditBtn" class="btn btn-outline btn-sm hidden" style="margin-top:8px;" onclick="resetForm()">Cancelar Edição</button>
+      </div>
+
+      <div class="card">
+        <div class="section-title">Gráfico Comparativo do Mês</div>
+        <div class="bar-wrap">
+          <div class="bar-labels"><span>Entradas Recebidas</span><span id="gEntR">R$ 0,00</span></div>
+          <div class="bar-track"><div id="bEntR" class="bar-fill" style="background:var(--green);width:0%"></div></div>
+        </div>
+        <div class="bar-wrap">
+          <div class="bar-labels"><span>Entradas Previstas</span><span id="gEntP">R$ 0,00</span></div>
+          <div class="bar-track"><div id="bEntP" class="bar-fill" style="background:var(--gold);width:0%"></div></div>
+        </div>
+        <div class="bar-wrap">
+          <div class="bar-labels"><span>Contas Pagas</span><span id="gSaiP">R$ 0,00</span></div>
+          <div class="bar-track"><div id="bSaiP" class="bar-fill" style="background:var(--red);width:0%"></div></div>
+        </div>
+        <div class="bar-wrap">
+          <div class="bar-labels"><span>Contas Pendentes</span><span id="gSaiPend">R$ 0,00</span></div>
+          <div class="bar-track"><div id="bSaiPend" class="bar-fill" style="background:var(--amber);width:0%"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="section-title">Metas de Economia e Dinheiro Guardado</div>
+        <div class="row-form">
+          <input type="text" id="goalName" placeholder="Nome da meta (ex: Reserva, Viagem)" />
+          <input type="number" id="goalTarget" step="0.01" placeholder="Valor alvo (R$)" />
+        </div>
+        <div class="row-form">
+          <input type="number" id="goalSaved" step="0.01" placeholder="Já guardado (R$)" />
+          <button class="btn btn-gold" onclick="addGoal()">Adicionar Meta</button>
+        </div>
+        <div id="goalsList" style="margin-top:12px;"></div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">Histórico de Movimentações do Mês</div>
+        <div id="txList"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const MONTHS = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+    const STORAGE_KEY = 'cf_robson_data_v1';
+    const PIN_KEY = 'cf_robson_pin_v1';
+    let selectedMonth = new Date().getMonth();
+    let state = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{"txs":[],"goals":[]}');
+
+    const savedPin = localStorage.getItem(PIN_KEY);
+    if (savedPin) {
+      document.getElementById('lockHint').textContent = 'Digite sua senha para acessar seu painel financeiro.';
+      document.getElementById('pinConfirm').classList.add('hidden');
+    }
+
+    document.getElementById('pinSubmitBtn').onclick = () => {
+      const p1 = document.getElementById('pinInput').value.trim();
+      const p2 = document.getElementById('pinConfirm').value.trim();
+      const err = document.getElementById('pinError');
+      if (!p1) { err.textContent = 'Digite uma senha.'; return; }
+      if (!savedPin) {
+        if (p1 !== p2) { err.textContent = 'As senhas não coincidem.'; return; }
+        localStorage.setItem(PIN_KEY, p1);
+        unlockApp();
+      } else {
+        if (p1 !== savedPin) { err.textContent = 'Senha incorreta.'; return; }
+        unlockApp();
+      }
+    };
+
+    function unlockApp() {
+      document.getElementById('lockScreen').classList.add('hidden');
+      document.getElementById('app').style.display = 'block';
+      initApp();
+    }
+
+    function lockApp() {
+      document.getElementById('pinInput').value = '';
+      document.getElementById('pinError').textContent = '';
+      document.getElementById('app').style.display = 'none';
+      document.getElementById('lockScreen').classList.remove('hidden');
+    }
+
+    function fmt(n) {
+      return Number(n || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      render();
+    }
+
+    function initApp() {
+      const bar = document.getElementById('monthsBar');
+      bar.innerHTML = '';
+      MONTHS.forEach((m, idx) => {
+        const b = document.createElement('button');
+        b.className = 'month-btn' + (idx === selectedMonth ? ' active' : '');
+        b.textContent = m;
+        b.onclick = () => { selectedMonth = idx; initApp(); };
+        bar.appendChild(b);
+      });
+      updateStatusOptions();
+      if (!document.getElementById('txDate').value) {
+        document.getElementById('txDate').value = new Date().toISOString().slice(0,10);
+      }
+      render();
+    }
+
+    function updateStatusOptions() {
+      const type = document.getElementById('txType').value;
+      const sel = document.getElementById('txStatus');
+      if (type === 'despesa') {
+        sel.innerHTML = '<option value="pago">Conta Paga</option><option value="pendente">Conta Pendente</option>';
+      } else {
+        sel.innerHTML = '<option value="recebido">Valor Recebido</option><option value="previsto">Valor Previsto</option>';
+      }
+    }
+
+    function saveTx() {
+      const desc = document.getElementById('txDesc').value.trim();
+      const val = parseFloat(document.getElementById('txVal').value);
+      const type = document.getElementById('txType').value;
+      const status = document.getElementById('txStatus').value;
+      const date = document.getElementById('txDate').value || new Date().toISOString().slice(0,10);
+      const editId = document.getElementById('editId').value;
+      if (!desc || isNaN(val) || val <= 0) { alert('Preencha descrição e valor válido.'); return; }
+      if (editId) {
+        const idx = state.txs.findIndex(t => t.id === editId);
+        if (idx > -1) state.txs[idx] = { ...state.txs[idx], desc, val, type, status, date, month: selectedMonth };
+      } else {
+        state.txs.unshift({ id: Date.now().toString(), desc, val, type, status, date, month: selectedMonth });
+      }
+      resetForm();
+      saveState();
+    }
+
+    function editTx(id) {
+      const t = state.txs.find(x => x.id === id);
+      if (!t) return;
+      document.getElementById('editId').value = t.id;
+      document.getElementById('txType').value = t.type;
+      updateStatusOptions();
+      document.getElementById('txStatus').value = t.status;
+      document.getElementById('txDesc').value = t.desc;
+      document.getElementById('txVal').value = t.val;
+      document.getElementById('txDate').value = t.date;
+      document.getElementById('formTitle').textContent = 'Editando Lançamento';
+      document.getElementById('cancelEditBtn').classList.remove('hidden');
+    }
+
+    function deleteTx(id) {
+      if (!confirm('Deseja excluir este lançamento?')) return;
+      state.txs = state.txs.filter(t => t.id !== id);
+      saveState();
+    }
+
+    function resetForm() {
+      document.getElementById('editId').value = '';
+      document.getElementById('txDesc').value = '';
+      document.getElementById('txVal').value = '';
+      document.getElementById('formTitle').textContent = 'Novo Lançamento';
+      document.getElementById('cancelEditBtn').classList.add('hidden');
+    }
+
+    function addGoal() {
+      const name = document.getElementById('goalName').value.trim();
+      const target = parseFloat(document.getElementById('goalTarget').value);
+      const saved = parseFloat(document.getElementById('goalSaved').value || '0');
+      if (!name || isNaN(target) || target <= 0) { alert('Informe o nome e o valor alvo da meta.'); return; }
+      state.goals.push({ id: Date.now().toString(), name, target, saved: Math.max(0, saved) });
+      document.getElementById('goalName').value = '';
+      document.getElementById('goalTarget').value = '';
+      document.getElementById('goalSaved').value = '';
+      saveState();
+    }
+
+    function addMoneyGoal(id) {
+      const extra = parseFloat(prompt('Quanto deseja guardar nesta meta agora? (R$)'));
+      if (isNaN(extra) || extra <= 0) return;
+      const g = state.goals.find(x => x.id === id);
+      if (g) { g.saved += extra; saveState(); }
+    }
+
+    function deleteGoal(id) {
+      if (!confirm('Remover esta meta?')) return;
+      state.goals = state.goals.filter(g => g.id !== id);
+      saveState();
+    }
+
+    function render() {
+      const list = state.txs.filter(t => t.month === selectedMonth);
+      let entRec = 0, entPrev = 0, extraRec = 0, saiPago = 0, saiPend = 0;
+      list.forEach(t => {
+        if (t.type === 'despesa') {
+          if (t.status === 'pago') saiPago += t.val; else saiPend += t.val;
+        } else {
+          if (t.status === 'recebido') {
+            entRec += t.val;
+            if (t.type === 'extra') extraRec += t.val;
+          } else {
+            entPrev += t.val;
+          }
+        }
+      });
+
+      const saldoReal = entRec - saiPago;
+      const saldoPrev = (entRec + entPrev) - (saiPago + saiPend);
+      document.getElementById('saldoReal').textContent = fmt(saldoReal);
+      document.getElementById('saldoPrevisto').textContent = 'Saldo previsto do mês: ' + fmt(saldoPrev);
+      document.getElementById('entRecebido').textContent = fmt(entRec);
+      document.getElementById('entPrevisto').textContent = `Previsto: ${fmt(entPrev)} • Extra: ${fmt(extraRec)}`;
+      document.getElementById('saiPago').textContent = fmt(saiPago);
+      document.getElementById('saiPendente').textContent = 'Pendentes: ' + fmt(saiPend);
+
+      const maxG = Math.max(entRec, entPrev, saiPago, saiPend, 1);
+      document.getElementById('gEntR').textContent = fmt(entRec);
+      document.getElementById('bEntR').style.width = (entRec / maxG * 100) + '%';
+      document.getElementById('gEntP').textContent = fmt(entPrev);
+      document.getElementById('bEntP').style.width = (entPrev / maxG * 100) + '%';
+      document.getElementById('gSaiP').textContent = fmt(saiPago);
+      document.getElementById('bSaiP').style.width = (saiPago / maxG * 100) + '%';
+      document.getElementById('gSaiPend').textContent = fmt(saiPend);
+      document.getElementById('bSaiPend').style.width = (saiPend / maxG * 100) + '%';
+
+      const txContainer = document.getElementById('txList');
+      txContainer.innerHTML = list.length ? '' : '<p class="sub">Nenhum lançamento neste mês ainda.</p>';
+      list.forEach(t => {
+        const isOut = t.type === 'despesa';
+        const isDone = t.status === 'recebido' || t.status === 'pago';
+        const statusLabel = isOut ? (isDone ? 'Paga' : 'Pendente') : (isDone ? 'Recebido' : 'Previsto');
+        const typeLabel = t.type === 'extra' ? 'Extra' : (t.type === 'salario' ? 'Salário' : (t.type === 'entrada' ? 'Entrada' : 'Conta'));
+        const div = document.createElement('div');
+        div.className = 'item';
+        div.innerHTML = `
+          <div>
+            <strong>${t.desc}</strong>
+            <span class="badge ${isDone ? 'badge-ok' : 'badge-pend'}">${statusLabel}</span>
+            <div class="item-meta">${typeLabel} • ${t.date}</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="${isOut ? 'red' : 'green'}" style="font-weight:700;margin-bottom:6px;">${isOut ? '-' : '+'} ${fmt(t.val)}</div>
+            <button class="btn btn-outline btn-sm" onclick="editTx('${t.id}')">Editar</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteTx('${t.id}')">Excluir</button>
+          </div>`;
+        txContainer.appendChild(div);
+      });
+
+      let sumSaved = 0, sumTarget = 0;
+      const goalsContainer = document.getElementById('goalsList');
+      goalsContainer.innerHTML = state.goals.length ? '' : '<p class="sub">Nenhuma meta cadastrada ainda.</p>';
+      state.goals.forEach(g => {
+        sumSaved += g.saved; sumTarget += g.target;
+        const pct = Math.min(100, Math.round((g.saved / g.target) * 100));
+        const div = document.createElement('div');
+        div.className = 'item';
+        div.style.display = 'block';
+        div.innerHTML = `
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+            <div><strong>${g.name}</strong><div class="item-meta">${fmt(g.saved)} de ${fmt(g.target)} (${pct}%)</div></div>
+            <div>
+              <button class="btn btn-outline btn-sm" onclick="addMoneyGoal('${g.id}')">+ Guardar</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteGoal('${g.id}')">Excluir</button>
+            </div>
+          </div>
+          <div class="goal-bar"><div class="goal-fill" style="width:${pct}%"></div></div>`;
+        goalsContainer.appendChild(div);
+      });
+      document.getElementById('totalGuardado').textContent = fmt(sumSaved);
+      document.getElementById('totalAlvo').textContent = 'Alvo total: ' + fmt(sumTarget);
+    }
+
+    function exportBackup() {
+      const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'backup-controle-financeiro.json';
+      a.click();
+    }
+
+    function triggerImport() { document.getElementById('importFile').click(); }
+
+    function importBackup(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const parsed = JSON.parse(reader.result);
+          if (parsed && Array.isArray(parsed.txs)) {
+            state = { txs: parsed.txs, goals: parsed.goals || [] };
+            saveState();
+            alert('Backup restaurado com sucesso!');
+          }
+        } catch { alert('Arquivo de backup inválido.'); }
+      };
+      reader.readAsText(file);
+    }
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js').catch(() => {});
+    }
+  </script>
+</body>
+</html>
